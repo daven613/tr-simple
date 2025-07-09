@@ -1,0 +1,33 @@
+{
+  "meta": {
+    "book_id": "test-error",
+    "chunk_size": 30,
+    "total_chunks": 4
+  },
+  "chunks": [
+    {
+      "index": 0,
+      "text": "This is a test file to check e",
+      "status": "pending",
+      "result": null
+    },
+    {
+      "index": 1,
+      "text": "rror handling.\nIt has multiple",
+      "status": "pending",
+      "result": null
+    },
+    {
+      "index": 2,
+      "text": " lines.\nWe will chunk it and t",
+      "status": "pending",
+      "result": null
+    },
+    {
+      "index": 3,
+      "text": "est processing.",
+      "status": "pending",
+      "result": null
+    }
+  ]
+}

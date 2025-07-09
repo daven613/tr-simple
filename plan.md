@@ -2,7 +2,6 @@ Here's a full, one-piece specification of the app from beginning to end — clea
 
 ---
 
-````markdown
 # 📘 Project Spec: Large Book Chunking & Translation Tool
 
 ## 🎯 Overview
@@ -25,9 +24,6 @@ The system will use **plain JSON files** for all storage. No database. No web in
 ### 📥 Input:
 - A raw `.txt` file (e.g. `mybook.txt`)
 - Desired chunk size (e.g. 1000 or 2000 characters)
-- Optional chunk overlap (e.g. 100 characters) to maintain context
-- Processing configuration (task type, target language, model, etc.)
-- Optional metadata (e.g. book title, language)
 
 ### 📤 Output:
 - A `chunked` JSON file (e.g. `mybook_chunked.json`) with structure:
@@ -37,30 +33,20 @@ The system will use **plain JSON files** for all storage. No database. No web in
   "meta": {
     "book_id": "mybook",
     "chunk_size": 1000,
-    "chunk_overlap": 100,
-    "language": "en",
-    "title": "My Book",
-    "processing_config": {
-      "task": "translate",
-      "target_language": "es",
-      "model": "gpt-4",
-      "api_key_env": "OPENAI_API_KEY",
-      "max_retries": 3,
-      "retry_delay": 5
-    }
+    "total_chunks": 42
   },
   "chunks": [
     {
       "index": 0,
-      "start": 0,
-      "end": 1000,
       "text": "First 1000 characters of book...",
-      "prompt": "Translate the following English text to Spanish, maintaining the style and tone:\n\n{text}",
       "status": "pending",
-      "result": null,
-      "error": null,
-      "retry_count": 0,
-      "last_attempt": null
+      "result": null
+    },
+    {
+      "index": 1,
+      "text": "Next 1000 characters of book...",
+      "status": "pending",
+      "result": null
     },
     ...
   ]
@@ -74,28 +60,39 @@ The system will use **plain JSON files** for all storage. No database. No web in
 ### 📥 Input:
 
 * A `chunked` JSON file (from `chunk.py`)
-* Task type: `"translate"`, `"summarize"`, or custom
-* (Optional) Target language or other parameters
+* Prompt template (e.g., "Translate this to Spanish: {text}")
+* Model name (e.g., "gpt-4", "claude-3")
+* API key (via environment variable)
 
 ### 📤 Output:
 
-* A `processed` JSON file (e.g. `mybook_translated.json`)
-* Each chunk has:
+* Updates the same JSON file with results
+* Each chunk now has:
 
-  * `status`: `"done"`, `"error"`, or `"pending"`
-  * `result`: the result of processing (e.g., translated text)
-  * `error`: error message if failed
-  * `retry_count`: number of retry attempts
-  * `last_attempt`: timestamp of last processing attempt
+  * `status`: `"done"` or `"error"`
+  * `result`: the processed text (if successful)
+  * `error`: error message (if failed)
 
-### 🔁 Re-run logic:
+### 🔁 Processing behavior:
 
-* Script skips chunks where `status == "done"`
-* Only re-processes `pending` or `error` chunks
-* Respects `max_retries` limit per chunk
-* Implements exponential backoff for rate limiting
-* Saves progress after each chunk to enable resumability
-* Useful for retrying failures or continuing partial runs
+* Script ONLY processes chunks where `status != "done"`
+* Each chunk tried only ONCE per run (no retries)
+* **Saves JSON file after EVERY chunk processed** (immediately after each LLM call)
+  - This ensures no progress is lost if the script crashes
+  - Can safely Ctrl+C and resume later
+  - Each save includes the latest result/error for that chunk
+* Shows detailed progress bar with:
+  - Current chunk number / Total chunks
+  - Success count
+  - Failed count  
+  - Processing speed (chunks/min)
+  - ETA based on current speed
+  - Live status updates
+
+Example progress display:
+```
+Processing: [████████░░░░░░░░░░░░] 42/100 chunks | ✓ 40 | ✗ 2 | Speed: 3.2/min | ETA: 18m 45s
+```
 
 ---
 
@@ -109,9 +106,10 @@ The system will use **plain JSON files** for all storage. No database. No web in
 
 * A final `.txt` file (e.g. `mybook_translated_final.txt`)
 * Concatenates all `result` values in chunk order
-* Can optionally check that all chunks have `status == "done"` before building
-* Handles overlapping chunks intelligently to avoid duplication
-* Generates a summary report of any failed chunks
+* Shows summary of build:
+  - Total chunks rebuilt
+  - Any missing chunks (errors/pending)
+  - Output file size
 
 ---
 
@@ -137,50 +135,48 @@ The system will use **plain JSON files** for all storage. No database. No web in
 
 ---
 
-## 🔧 Implementation Details
-
-### Chunking Strategy:
-* Use character-based chunking with configurable overlap
-* Overlap ensures context continuity between chunks
-* Smart splitting at sentence/paragraph boundaries when possible
-
-### Error Handling:
-* Comprehensive error tracking per chunk
-* Automatic retry with exponential backoff
-* Rate limit detection and handling
-* Progress saved after each chunk for crash recovery
-
-### Prompt Management:
-* Each chunk includes a customizable prompt template
-* Prompts can use placeholders like `{text}`, `{chunk_index}`, `{total_chunks}`
-* Default prompts provided for common tasks (translate, summarize)
-
 ## 📋 Usage Examples
 
 ```bash
-# Chunk a book with 2000 char chunks and 200 char overlap
-python chunk.py --input mybook.txt --chunk-size 2000 --overlap 200 --task translate --target-lang es
+# Step 1: Chunk a book into 2000 character pieces
+python chunk.py mybook.txt --chunk-size 2000
 
-# Process with custom prompt
-python process.py --input mybook_chunked.json --prompt "Summarize this text in 3 sentences: {text}"
+# Step 2: Process chunks with translation (can be run multiple times)
+python process.py mybook_chunked.json --prompt "Translate to Spanish: {text}" --model gpt-4
 
-# Rebuild with validation
-python rebuild.py --input mybook_processed.json --validate --output final.txt
+# If some chunks failed, just run again - it will only process failed/pending chunks:
+python process.py mybook_chunked.json --prompt "Translate to Spanish: {text}" --model gpt-4
+
+# Step 3: Rebuild into final file
+python rebuild.py mybook_chunked.json -o mybook_spanish.txt
+```
+
+## 📊 Progress Tracking
+
+The process.py script provides real-time progress information:
+
+```
+Starting processing of mybook_chunked.json
+Found 100 chunks: 95 pending, 5 already done
+
+Processing: [████████░░░░░░░░░░░░] 42/95 chunks | ✓ 40 | ✗ 2 | Speed: 3.2/min | ETA: 16m 33s
+Current: Processing chunk 42 - "It was the best of times, it was the..."
+
+Summary:
+- Total chunks: 100
+- Successfully processed: 45
+- Failed: 2 (chunks: 23, 67)
+- Already done: 5
+- Processing time: 14m 3s
 ```
 
 ## 🔧 Notes
 
-* All data is stored in human-readable JSON.
-* You can inspect, edit, or retry any chunk manually if needed.
-* Progress is automatically saved, making the process resumable.
-* Later enhancements could include:
-
-  * CLI menu
-  * GUI
-  * Parallel processing
-  * Model/version tracking
-  * Output in other formats (Markdown, HTML)
-  * Multiple LLM provider support
+* All data stored in simple JSON files
+* **Progress saved after EVERY LLM call** (completely crash-safe)
+* Can interrupt processing at any time without losing work
+* Easy to inspect and manually edit chunks
+* Simple design allows for future enhancements
 
 ---
 

@@ -1,0 +1,72 @@
+{
+  "meta": {
+    "book_id": "plan-hebrew",
+    "chunk_size": 500,
+    "total_chunks": 9
+  },
+  "chunks": [
+    {
+      "index": 0,
+      "text": "הנה מפרט מלא ומקיף של האפליקציה מההתחלה ועד הסוף - ברור, מובנה ומוכן להעתקה לצורך יצירת קוד:\n\n---\n\n# 📘 מפרט פרויקט: כלי לחלוקת וקידוד ספרים גדולים\n\n## 🎯 סקירה כללית\n\nכלי זה מיועד לעיבוד קבצי טקסט גדולים (ספרים) על ידי:\n1. חלוקת הטקסט הגולמי לחתיכות ניתנות לניהול.\n2. עיבוד כל חתיכה (למשל, תרגום, סיכום) באמצעות LLM.\n3. חזרה על חתיכות שנכשלו או לא הושלמו לפי הצורך.\n4. בנייה מחדש של החתיכות המעובדות לקובץ פלט סופי ושלם (למשל, ספר מתורגם).\n\nהמערכת תשתמש ב**קבצי JSON פשוטים** לכל האחסון. ללא מסד נתוני",
+      "status": "done",
+      "result": "Here is a complete and comprehensive specification of the application from start to finish – clear, structured, and ready to be copied for code creation:\n\n---\n\n# 📘 Project Specification: Tool for Splitting and Encoding Large Books\n\n## 🎯 Overview\n\nThis tool is intended for processing large text files (books) by:\n1. Splitting the raw text into manageable chunks.\n2. Processing each chunk (e.g., translation, summarization) using an LLM.\n3. Retrying chunks that failed or were not completed as needed.\n4. Reassembling the processed chunks into a final, complete output file (e.g., a translated book).\n\nThe system will use **simple JSON files** for all storage. No database.",
+      "error": null
+    },
+    {
+      "index": 1,
+      "text": "ם. ללא ממשק אינטרנט. שימוש פשוט מבוסס טרמינל עם שלושה סקריפטים:\n- `chunk.py`\n- `process.py`\n- `rebuild.py`\n\n---\n\n## 🧩 שלב 1: סקריפט חלוקה (`chunk.py`)\n\n### 📥 קלט:\n- קובץ `.txt` גולמי (למשל `mybook.txt`)\n- גודל חתיכה רצוי (למשל 1000 או 2000 תווים)\n\n### 📤 פלט:\n- קובץ JSON `מחולק` (למשל `mybook_chunked.json`) עם המבנה:\n\n```json\n{\n  \"meta\": {\n    \"book_id\": \"mybook\",\n    \"chunk_size\": 1000,\n    \"total_chunks\": 42\n  },\n  \"chunks\": [\n    {\n      \"index\": 0,\n      \"text\": \"1000 התווים הראשונים של הספר.",
+      "status": "done",
+      "result": "Here is the translation of the Hebrew text to English:\n\n---\n\nNo internet interface. Simple terminal-based usage with three scripts:  \n- `chunk.py`  \n- `process.py`  \n- `rebuild.py`  \n\n---\n\n## 🧩 Step 1: Chunking Script (`chunk.py`)\n\n### 📥 Input:  \n- Raw `.txt` file (e.g., `mybook.txt`)  \n- Desired chunk size (e.g., 1000 or 2000 characters)  \n\n### 📤 Output:  \n- A JSON `chunked` file (e.g., `mybook_chunked.json`) with the structure:\n\n```json\n{\n  \"meta\": {\n    \"book_id\": \"mybook\",\n    \"chunk_size\": 1000,\n    \"total_chunks\": 42\n  },\n  \"chunks\": [\n    {\n      \"index\": 0,\n      \"text\": \"The first 1000 characters of the book.\"\n```",
+      "error": null
+    },
+    {
+      "index": 2,
+      "text": "..\",\n      \"status\": \"pending\",\n      \"result\": null\n    },\n    {\n      \"index\": 1,\n      \"text\": \"1000 התווים הבאים של הספר...\",\n      \"status\": \"pending\",\n      \"result\": null\n    },\n    ...\n  ]\n}\n````\n\n---\n\n## ⚙️ שלב 2: סקריפט עיבוד (`process.py`)\n\n### 📥 קלט:\n\n* קובץ JSON `מחולק` (מ-`chunk.py`)\n* תבנית הנחיה (למשל, \"תרגם לספרדית: {text}\")\n* שם מודל (למשל, \"gpt-4\", \"claude-3\")\n* מפתח API (דרך משתנה סביבה)\n\n### 📤 פלט:\n\n* מעדכן את אותו קובץ JSON עם התוצאות\n* כל חתיכה כעת כוללת:\n\n  * `status`: `\"",
+      "status": "done",
+      "result": "Here is the translation of the Hebrew text to English:\n\n---\n\n## ⚙️ Step 2: Processing Script (`process.py`)\n\n### 📥 Input:\n\n* A JSON file `chunked` (from `chunk.py`)\n* A prompt template (for example, \"Translate to Spanish: {text}\")\n* Model name (for example, \"gpt-4\", \"claude-3\")\n* API key (via environment variable)\n\n### 📤 Output:\n\n* Updates the same JSON file with the results\n* Each chunk now includes:\n\n  * `status`: `\"",
+      "error": null
+    },
+    {
+      "index": 3,
+      "text": "done\"` או `\"error\"`\n  * `result`: הטקסט המעובד (אם הצליח)\n  * `error`: הודעת שגיאה (אם נכשל)\n\n### 🔁 התנהגות העיבוד:\n\n* הסקריפט מעבד רק חתיכות שבהן `status != \"done\"`\n* כל חתיכה מנוסה רק פעם אחת בכל הרצה (ללא ניסיונות חוזרים)\n* **שומר את קובץ ה-JSON אחרי כל חתיכה שמעובדת** (מיד אחרי כל קריאת LLM)\n  - זה מבטיח שאף התקדמות לא תאבד אם הסקריפט קורס\n  - ניתן לעצור בבטחה עם Ctrl+C ולהמשיך מאוחר יותר\n  - כל שמירה כוללת את התוצאה/שגיאה העדכנית של אותה חתיכה\n* מציג סרגל התקדמות מפורט עם:\n  - מספר חתיכה נו",
+      "status": "done",
+      "result": "done\"` or `\"error\"`\n* `result`: the processed text (if successful)\n* `error`: error message (if failed)\n\n### 🔁 Processing behavior:\n\n* The script processes only pieces where `status != \"done\"`\n* Each piece is attempted only once per run (no retries)\n* **Saves the JSON file after each processed piece** (immediately after each LLM call)\n  - This ensures no progress is lost if the script crashes\n  - It is safe to stop with Ctrl+C and continue later\n  - Each save includes the current result/error of that piece\n* Displays a detailed progress bar with:\n  - piece number no...",
+      "error": null
+    },
+    {
+      "index": 4,
+      "text": "כחית / סך החתיכות\n  - ספירת הצלחות\n  - ספירת כשלונות\n  - מהירות עיבוד (חתיכות/דקה)\n  - זמן משוער לסיום מבוסס על המהירות הנוכחית\n  - עדכוני סטטוס חיים\n\nדוגמה לתצוגת התקדמות:\n```\nמעבד: [████████░░░░░░░░░░░░] 42/100 חתיכות | ✓ 40 | ✗ 2 | מהירות: 3.2/דקה | זמן משוער: 18ד 45ש\n```\n\n---\n\n## 🏗️ שלב 3: סקריפט בנייה מחדש (`rebuild.py`)\n\n### 📥 קלט:\n\n* קובץ JSON `מעובד` (מ-`process.py`)\n\n### 📤 פלט:\n\n* קובץ `.txt` סופי (למשל `mybook_translated_final.txt`)\n* משרשר את כל ערכי ה-`result` לפי סדר החתיכות\n* מציג ",
+      "status": "done",
+      "result": "Quantity / Total pieces  \n- Count of successes  \n- Count of failures  \n- Processing speed (pieces/minute)  \n- Estimated time to completion based on current speed  \n- Live status updates  \n\nExample of a progress display:  \n```\nProcessor: [████████░░░░░░░░░░░░] 42/100 pieces | ✓ 40 | ✗ 2 | Speed: 3.2/min | Estimated time: 18d 45h\n```\n\n---\n\n## 🏗️ Stage 3: Rebuild Script (`rebuild.py`)\n\n### 📥 Input:\n\n* Processed JSON file (from `process.py`)\n\n### 📤 Output:\n\n* Final `.txt` file (e.g. `mybook_translated_final.txt`)  \n* Concatenates all `result` values in order of the pieces  \n* Displays",
+      "error": null
+    },
+    {
+      "index": 5,
+      "text": "סיכום של הבנייה:\n  - סך החתיכות שנבנו מחדש\n  - חתיכות חסרות כלשהן (שגיאות/ממתינות)\n  - גודל קובץ הפלט\n\n---\n\n## ✅ סיכום הסקריפטים\n\n### `chunk.py`\n\n* קלט: `raw_book.txt`\n* פלט: `chunked.json`\n* תפקיד: חלוקה לחתיכות בגודל קבוע\n\n### `process.py`\n\n* קלט: `chunked.json`\n* פלט: `processed.json`\n* תפקיד: עיבוד (תרגום/סיכום/וכו') של כל חתיכה באמצעות LLM\n\n### `rebuild.py`\n\n* קלט: `processed.json`\n* פלט: `final_output.txt`\n* תפקיד: שילוב כל התוצאות לקובץ קריא סופי\n\n---\n\n## 📋 דוגמאות שימוש\n\n```bash\n# שלב 1:",
+      "status": "done",
+      "result": "Summary of the construction:\n  - Total pieces rebuilt\n  - Any missing pieces (errors/pending)\n  - Output file size\n\n---\n\n## ✅ Script Summary\n\n### `chunk.py`\n\n* Input: `raw_book.txt`\n* Output: `chunked.json`\n* Role: Splitting into fixed-size chunks\n\n### `process.py`\n\n* Input: `chunked.json`\n* Output: `processed.json`\n* Role: Processing (translation/summary/etc.) of each chunk using LLM\n\n### `rebuild.py`\n\n* Input: `processed.json`\n* Output: `final_output.txt`\n* Role: Combining all results into a final readable file\n\n---\n\n## 📋 Usage Examples\n\n```bash\n# Step 1:",
+      "error": null
+    },
+    {
+      "index": 6,
+      "text": " חלוקת ספר לחתיכות של 2000 תווים\npython chunk.py mybook.txt --chunk-size 2000\n\n# שלב 2: עיבוד חתיכות עם תרגום (ניתן להריץ מספר פעמים)\npython process.py mybook_chunked.json --prompt \"תרגם לספרדית: {text}\" --model gpt-4\n\n# אם חתיכות מסוימות נכשלו, פשוט הרץ שוב - זה יעבד רק חתיכות שנכשלו/ממתינות:\npython process.py mybook_chunked.json --prompt \"תרגם לספרדית: {text}\" --model gpt-4\n\n# שלב 3: בנייה מחדש לקובץ סופי\npython rebuild.py mybook_chunked.json -o mybook_spanish.txt\n```\n\n## 📊 מעקב התקדמות\n\nסקריפ",
+      "status": "done",
+      "result": "Sure! Here's the translation of the Hebrew text to English:\n\n---\n\nSplitting a book into pieces of 2000 characters  \npython chunk.py mybook.txt --chunk-size 2000\n\n# Step 2: Processing chunks with translation (can be run multiple times)  \npython process.py mybook_chunked.json --prompt \"Translate to Spanish: {text}\" --model gpt-4\n\n# If certain chunks failed, just run again – it will process only the chunks that failed/waiting:  \npython process.py mybook_chunked.json --prompt \"Translate to Spanish: {text}\" --model gpt-4\n\n# Step 3: Rebuilding into a final file  \npython rebuild.py mybook_chunked.json -o mybook_spanish.txt\n\n---\n\nIf you want, I can also help translate the rest of the text or explain the commands.",
+      "error": null
+    },
+    {
+      "index": 7,
+      "text": "ט process.py מספק מידע התקדמות בזמן אמת:\n\n```\nמתחיל עיבוד של mybook_chunked.json\nנמצאו 100 חתיכות: 95 ממתינות, 5 כבר הושלמו\n\nמעבד: [████████░░░░░░░░░░░░] 42/95 חתיכות | ✓ 40 | ✗ 2 | מהירות: 3.2/דקה | זמן משוער: 16ד 33ש\nנוכחי: מעבד חתיכה 42 - \"זו הייתה התקופה הטובה ביותר, זו הייתה...\"\n\nסיכום:\n- סך החתיכות: 100\n- עובדו בהצלחה: 45\n- נכשלו: 2 (חתיכות: 23, 67)\n- כבר הושלמו: 5\n- זמן עיבוד: 14ד 3ש\n```\n\n## 🔧 הערות\n\n* כל הנתונים נשמרים בקבצי JSON פשוטים\n* **ההתקדמות נשמרת אחרי כל קריאת LLM** (בטוח לחלוטי",
+      "status": "done",
+      "result": "The file process.py provides real-time progress information:\n\n```\nStarting processing of mybook_chunked.json\nFound 100 chunks: 95 pending, 5 already completed\n\nProcessor: [████████░░░░░░░░░░░░] 42/95 chunks | ✓ 40 | ✗ 2 | Speed: 3.2/min | Estimated time: 16m 33s\nCurrent: Processing chunk 42 - \"It was the best of times, it was the...\"\n\nSummary:\n- Total chunks: 100\n- Successfully processed: 45\n- Failed: 2 (chunks: 23, 67)\n- Already completed: 5\n- Processing time: 14m 3s\n```\n\n## 🔧 Notes\n\n* All data is saved in simple JSON files\n* **Progress is saved after every LLM call** (absolutely safe)",
+      "error": null
+    },
+    {
+      "index": 8,
+      "text": "ן מקריסות)\n* ניתן להפסיק את העיבוד בכל עת מבלי לאבד עבודה\n* קל לבדוק ולערוך חתיכות באופן ידני\n* עיצוב פשוט המאפשר שיפורים עתידיים\n\n---\n\n**מערכת זו מתוכננת לפשטות ואיטרציה. בנה מהר, שפר מאוחר יותר.**",
+      "status": "done",
+      "result": "Here is the translation of the Hebrew text to English:\n\n\"(and crashes)\n* Processing can be stopped at any time without losing work\n* Easy to check and edit pieces manually\n* Simple design that allows for future improvements\n\n---\n\n**This system is designed for simplicity and iteration. Build fast, improve later.**\"",
+      "error": null
+    }
+  ]
+}

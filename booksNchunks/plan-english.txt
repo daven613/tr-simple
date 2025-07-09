@@ -1,0 +1,180 @@
+Here is a complete and comprehensive specification of the application from start to finish – clear, structured, and ready to be copied for code creation:
+
+---
+
+# 📘 Project Specification: Tool for Splitting and Encoding Large Books
+
+## 🎯 Overview
+
+This tool is intended for processing large text files (books) by:
+1. Splitting the raw text into manageable chunks.
+2. Processing each chunk (e.g., translation, summarization) using an LLM.
+3. Retrying chunks that failed or were not completed as needed.
+4. Reassembling the processed chunks into a final, complete output file (e.g., a translated book).
+
+The system will use **simple JSON files** for all storage. No database.Here is the translation of the Hebrew text to English:
+
+---
+
+No internet interface. Simple terminal-based usage with three scripts:  
+- `chunk.py`  
+- `process.py`  
+- `rebuild.py`  
+
+---
+
+## 🧩 Step 1: Chunking Script (`chunk.py`)
+
+### 📥 Input:  
+- Raw `.txt` file (e.g., `mybook.txt`)  
+- Desired chunk size (e.g., 1000 or 2000 characters)  
+
+### 📤 Output:  
+- A JSON `chunked` file (e.g., `mybook_chunked.json`) with the structure:
+
+```json
+{
+  "meta": {
+    "book_id": "mybook",
+    "chunk_size": 1000,
+    "total_chunks": 42
+  },
+  "chunks": [
+    {
+      "index": 0,
+      "text": "The first 1000 characters of the book."
+```Here is the translation of the Hebrew text to English:
+
+---
+
+## ⚙️ Step 2: Processing Script (`process.py`)
+
+### 📥 Input:
+
+* A JSON file `chunked` (from `chunk.py`)
+* A prompt template (for example, "Translate to Spanish: {text}")
+* Model name (for example, "gpt-4", "claude-3")
+* API key (via environment variable)
+
+### 📤 Output:
+
+* Updates the same JSON file with the results
+* Each chunk now includes:
+
+  * `status`: `"done"` or `"error"`
+* `result`: the processed text (if successful)
+* `error`: error message (if failed)
+
+### 🔁 Processing behavior:
+
+* The script processes only pieces where `status != "done"`
+* Each piece is attempted only once per run (no retries)
+* **Saves the JSON file after each processed piece** (immediately after each LLM call)
+  - This ensures no progress is lost if the script crashes
+  - It is safe to stop with Ctrl+C and continue later
+  - Each save includes the current result/error of that piece
+* Displays a detailed progress bar with:
+  - piece number no...Quantity / Total pieces  
+- Count of successes  
+- Count of failures  
+- Processing speed (pieces/minute)  
+- Estimated time to completion based on current speed  
+- Live status updates  
+
+Example of a progress display:  
+```
+Processor: [████████░░░░░░░░░░░░] 42/100 pieces | ✓ 40 | ✗ 2 | Speed: 3.2/min | Estimated time: 18d 45h
+```
+
+---
+
+## 🏗️ Stage 3: Rebuild Script (`rebuild.py`)
+
+### 📥 Input:
+
+* Processed JSON file (from `process.py`)
+
+### 📤 Output:
+
+* Final `.txt` file (e.g. `mybook_translated_final.txt`)  
+* Concatenates all `result` values in order of the pieces  
+* DisplaysSummary of the construction:
+  - Total pieces rebuilt
+  - Any missing pieces (errors/pending)
+  - Output file size
+
+---
+
+## ✅ Script Summary
+
+### `chunk.py`
+
+* Input: `raw_book.txt`
+* Output: `chunked.json`
+* Role: Splitting into fixed-size chunks
+
+### `process.py`
+
+* Input: `chunked.json`
+* Output: `processed.json`
+* Role: Processing (translation/summary/etc.) of each chunk using LLM
+
+### `rebuild.py`
+
+* Input: `processed.json`
+* Output: `final_output.txt`
+* Role: Combining all results into a final readable file
+
+---
+
+## 📋 Usage Examples
+
+```bash
+# Step 1:Sure! Here's the translation of the Hebrew text to English:
+
+---
+
+Splitting a book into pieces of 2000 characters  
+python chunk.py mybook.txt --chunk-size 2000
+
+# Step 2: Processing chunks with translation (can be run multiple times)  
+python process.py mybook_chunked.json --prompt "Translate to Spanish: {text}" --model gpt-4
+
+# If certain chunks failed, just run again – it will process only the chunks that failed/waiting:  
+python process.py mybook_chunked.json --prompt "Translate to Spanish: {text}" --model gpt-4
+
+# Step 3: Rebuilding into a final file  
+python rebuild.py mybook_chunked.json -o mybook_spanish.txt
+
+---
+
+If you want, I can also help translate the rest of the text or explain the commands.The file process.py provides real-time progress information:
+
+```
+Starting processing of mybook_chunked.json
+Found 100 chunks: 95 pending, 5 already completed
+
+Processor: [████████░░░░░░░░░░░░] 42/95 chunks | ✓ 40 | ✗ 2 | Speed: 3.2/min | Estimated time: 16m 33s
+Current: Processing chunk 42 - "It was the best of times, it was the..."
+
+Summary:
+- Total chunks: 100
+- Successfully processed: 45
+- Failed: 2 (chunks: 23, 67)
+- Already completed: 5
+- Processing time: 14m 3s
+```
+
+## 🔧 Notes
+
+* All data is saved in simple JSON files
+* **Progress is saved after every LLM call** (absolutely safe)Here is the translation of the Hebrew text to English:
+
+"(and crashes)
+* Processing can be stopped at any time without losing work
+* Easy to check and edit pieces manually
+* Simple design that allows for future improvements
+
+---
+
+**This system is designed for simplicity and iteration. Build fast, improve later.**"
